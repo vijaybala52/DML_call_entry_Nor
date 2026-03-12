@@ -1,0 +1,168 @@
+
+Enum "tickets_status_enum" {
+  "open"
+  "closed"
+}
+
+Enum "ticket_issues_status_enum" {
+  "open"
+  "WF"
+  "close"
+}
+
+Enum "work_front_status_enum" {
+  "open"
+  "done"
+}
+
+Enum "work_done_status_enum" {
+  "open"
+  "closed"
+}
+
+Table "companies" {
+  "id" INT [pk, not null, increment]
+  "name" VARCHAR(255)
+  "address1" VARCHAR(255)
+  "address2" VARCHAR(255)
+  "address3" VARCHAR(255)
+  "country" VARCHAR(255)
+  "city" VARCHAR(100)
+  "state" VARCHAR(50)
+  "pin" VARCHAR(20)
+  "route" VARCHAR(50)
+  "zone" VARCHAR(50)
+  "area" VARCHAR(50)
+  "cluster" VARCHAR(50) 
+  "gstin" VARCHAR(50)
+  "security" VARCHAR(255)
+  "weekly_off_start" VARCHAR(20)
+  "weekly_off_end" VARCHAR(20)
+  "working_hrs_start" TIME
+  "working_hrs_end" TIME
+}
+
+Table "machines" {
+  "id" INT [pk, not null, increment]
+  "company_id" INT [not null]
+  "mc_no" VARCHAR(50) [not null]
+  "model" VARCHAR(100)
+  "status" VARCHAR(50)
+  "start_dt" DATE
+  "end_dt" DATE
+  "inv_no" VARCHAR(40)
+  "inv_dt" DATE
+  "inv_value" VARCHAR(20)
+}
+
+Table "contacts" {
+  "id" INT [pk, increment]
+  "company_id" INT [not null]
+  "machine_id" INT [not null]
+  "name" VARCHAR(255) [not null]
+  "phone" VARCHAR(50)
+  "email" VARCHAR(255)
+  "designation" VARCHAR(100)
+}
+
+Table "tickets" {
+  "id" INT [pk, not null, increment]
+  "company_id" INT [not null]
+  "machine_id" INT [not null]
+  "contact_id" INT [not null]
+  "ticket_no" INT
+  "status" tickets_status_enum [default: 'open']
+}
+
+Table "ticket_issues" {
+  "id" INT [pk, increment]
+  "ticket_id" INT [not null]
+  "date" DATE
+  "start_time" VARCHAR(20)
+  "end_time" VARCHAR(20)
+  "log_by" VARCHAR(50)
+  "customer_name" VARCHAR(255)
+  "fault" VARCHAR(255)
+  "priority" VARCHAR(20)
+  "status" ticket_issues_status_enum [default: 'open']
+}
+
+Table "work_front" {
+  "issue_id" INT [not null]
+  "id" INT [pk, increment]
+  "cluster_id" INT [not null]
+  "short_form_id" INT [not null]
+  "status" work_front_status_enum [default: 'open']
+}
+
+Table "short_form" {
+  
+  "s" INT
+  "a" INT
+  "i" INT
+  "d" INT
+  "e" INT
+  "f" INT
+  "p" INT
+  "prior" INT
+  "purpose" VARCHAR(100)
+  "priority" VARCHAR(100)
+  "id" INT [pk, increment]
+}
+
+Table "cluster" {
+  "id" INT [pk, not null, increment]
+  "z" INT
+  "a" INT
+  "r" INT
+  "c" INT
+  "cluster" VARCHAR(30)
+  "rg" VARCHAR(50)
+  "zarc" INT
+}
+
+Table "work_done" {
+  "id" INT [pk, increment]
+  "work_front_id" INT [not null]
+  "done_date" date
+  "done_by" VARCHAR(20)
+  "status" work_done_status_enum [default: 'open']
+}
+
+Table "spare_option" {
+  "id" INT [pk, increment]
+  "spare_name" VARCHAR(255) [not null]
+}
+
+Table "spare_used" {
+  "id" INT [pk, increment]
+  "spare_option_id" INT [not null]
+  "work_done_id" INT [not null]
+  
+}
+
+Ref:"companies"."id" < "machines"."company_id" [delete: cascade]
+
+Ref:"companies"."id" < "contacts"."company_id"
+
+Ref:"machines"."id" < "contacts"."machine_id"
+
+Ref:"companies"."id" < "tickets"."company_id"
+
+Ref:"machines"."id" < "tickets"."machine_id"
+
+Ref:"contacts"."id" < "tickets"."contact_id"
+
+Ref:"tickets"."id" < "ticket_issues"."ticket_id"
+
+Ref:"ticket_issues"."id" < "work_front"."issue_id" [delete: cascade]
+
+Ref:"short_form"."id" < "work_front"."short_form_id" [delete: cascade]
+
+Ref:"cluster"."id" < "work_front"."cluster_id" [delete: cascade]
+
+Ref:"work_front"."id" < "work_done"."work_front_id" [delete: cascade]
+
+Ref:"work_done"."id" < "spare_used"."work_done_id"
+
+Ref:"spare_option"."id" < "spare_used"."spare_option_id"
